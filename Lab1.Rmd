@@ -1,0 +1,75 @@
+---
+title: "Lab_1"
+output: html_document
+date: "2024-01-03"
+---
+
+Learning R basics
+```{r}
+#scalars
+a <- 3
+b <- 2
+a + b
+#array
+#c() command means to combine
+arrie <- c(1,2,3,4)
+# seq = create a sequence of numbers 
+barry <- seq(from =1, to = 4, by=1)
+#: makes list of integers
+carrie <- 1:4
+print(carrie)
+
+#View makes matrix look like spreadsheet
+View(carrie)
+
+#indexing
+carrie[3] 
+carrie[3] <- 30
+
+#loops
+#assign numbers to objects, best practice in programming
+#loop to create list of integers from 0-29
+n.2.count <- 30
+count <- rep(NA, n.2.count)
+count[1] <- 0
+for (i in 2:n.2.count){
+  count[i] <- count[i-1] + 1
+}
+```
+
+Practicum:
+I will create the objects (N0, r, K, years) I need and assign values to them using arrows. I will create an array called "pops" by using the rep command, placing enough NA's in there that correspond to the # of years we want to run the simulation (contained in object "years"). For my loop, I will say for (i in 1:years), I will get the pop value for the next year by adding the previous year (Nt, pops[i-1]) to the previous year times r, and then times (1-Nt/K). I will assign the first value of the pops array (pops[1]) to be equal to N0 and start the loop at i = 2. I will graph the model output with year on the x axis and pop on the y axis. The code worked if the pop doesn't go over carrying capacity (100) and there are no NA values in the pops array. 
+
+```{r}
+#creating a loop to calculate wolf population 
+#current wolf population size is 25, r equals 0.15, and K equals 100, 
+#simulate the population size for the next 20 years
+
+#create the variables
+N0 <- 25
+r <- .15
+K <- 100
+numyears <- 20
+pops <- rep (NA, numyears)
+#set first value for population
+pops[1] <- N0
+
+#run loop 
+for (i in 2:numyears){
+  n.t <- pops[i-1]
+  n.t.plus1 <- n.t + r*n.t*(1-(n.t/K))
+  pops[i] <- n.t.plus1
+}
+
+#see what pop values are
+pops
+
+#graph pops over years
+years <- 1:20
+plot(x= years, y = pops,
+     xlab = "Years",
+     ylab = "Wolf population")
+```
+
+
+
