@@ -1,0 +1,61 @@
+---
+title: "Project_1"
+output: html_document
+date: "2024-01-25"
+---
+
+#### North Region
+
+```{r}
+
+# Set Parameter values 
+r <- 0.025
+K <- 448
+N0 <- 140
+nyears <- 25
+
+# Define functions
+logistic <- function(r, K, nt) {
+  ntplus1 <- nt + r * nt * (1 -nt /K)
+  return(ntplus1)
+}
+
+# Create a loop to run the logistic model
+
+nt <- rep(NA, nyears) 
+nt[1] <- N0
+
+for (i in 2:nyears) {
+  nt[i] <- logistic(r = r,
+                    K = K,
+                    nt = nt[i - 1])
+}
+
+
+# Run Scenario 1: North 
+# nominal case parameters
+r <- mean(0.025, 0.049)
+K <- 448
+N0 <- 140
+
+output <- logistic_pop(r = r,
+                       K = K,
+                       N0 = N0,
+                       nyears = nyears)
+
+# calculate % change
+100 * (output[ nyears ] - output[ 1 ]) / output[ 1 ]
+```
+
+#### Southwest Region
+
+```{r}
+
+```
+
+#### Southeast Region
+
+```{r}
+
+```
+

@@ -1,0 +1,69 @@
+---
+title: "HW_3"
+output: html_document
+date: "2024-01-18"
+---
+
+##### 1. Create a matrix of transition probabilities using these values. Because you have five stages, you should have a 5 x 5 matrix. (2 points)
+```{r}
+G1 <- 0.0704 # egg to age 1 tadpole
+G2 <- 0.0775 # age 1 tadpole to age 2 tadpole
+G24 <- 0.016 # age 1 tadpole to juvenile
+G3 <- 0.0196 # age 2 tadpole to juvenile
+G4 <- 0.23 # juvenile to adult
+P5 <- 0.375 # adult survivorship
+F5 <- 2082 # eggs produced per adult, per year
+
+A <- matrix(0, nrow = 5, ncol = 5)
+
+A[1,5] <- F5
+A[2,1] <- G1
+A[3,2] <- G2
+A[4,2] <- G24
+A[4,3] <- G3
+A[5,4] <- G4
+A[5,5] <- P5
+
+print(A)
+```
+##### 2. Report the calculated dominant eigenvalue, its associated eigenvector, and the elasticity for each element of the transition matrix. (See output)
+
+The dominant eigenvalue (population growth rate) is 0.988. The dominant eigenvector is [-0.9974546181 -0.0710731203 -0.0055750230 -0.0012615692 -0.0004733396]. 
+See stage distribution and elasticity values below. 
+```{r}
+ev <- eigen(A)
+eigen.vals <- ev$values
+eigen.vects <- ev$vectors
+
+lambda <- Re(eigen.vals[1])
+w <- Re(eigen.vects[,1])
+stable.age <- w / sum(w)
+
+print(stable.age)
+### Calculate elasticity
+evl <- eigen(t(A))
+v <- Re(evl$vectors[,1])
+
+sp <- sum(v * w)
+
+vi.wj <- v %o% w
+e <- A / lambda * (vi.wj / sp)
+print(e)
+
+```
+##### 3. Describe, explain the findings from question (2).
+
+The dominant eigenvalue is equivalent to the population growth rate, which is 0.988, predicting the population will decline at 1.2% a year, which is interesting given that bullfrogs are still a problem. Perhaps the increase is due to immigration that our model isn't accounting for.  The stable stage distribution given by the dominant eigenvector is 92.7% of bullfrogs are eggs, 6.6% are first year tadpoles, 0.5% are second year tadpoles, 0.1% are juveniles, and 0.04% are adults. The population is structured (in this model) to be that most of the individuals in the population are in beginning life stages. As for the elasticity matrix, here's the ranking of the parameter elasticities, most to least important. 
+
+1. F5, G1, and G4. 
+2. G24
+3. G2, G3
+4. P5
+
+This means that in terms of terms/life stages that contribute most to the model's population growth rate, adult birth rates, survival of eggs to tadpoles, and survival of juveniles to adults make the greatest impact. Survival of first year tadpoles to juveniles is the next most important, followed by survival of first year tadpoles to a second year, and survival of second year tadpoles to juveniles. The least important is adult survivorship. 
+
+
+##### 4. Interpret with model to the real world, particularly with respect to the potential effectiveness of a juvenile-removal program to replace the adult bullfrog removal program that is already in place.  This should include a discussion of caveats and cautions to a literal interpretation of the model output 
+
+Given what the model says, removing juveniles would be much more effective at reducing population growth rate than removing adults, given the heightened elasticity of the juvenile to adult survivorship term. However, any change in any of the parameters we used for the model might change what life stage term has the greatest elasticity, and is therefore the most important life stage to target. Moreover, removing juveniles might be more costly in terms of time and money than in removing adults, which should be considered when implementing conservation decisions. 
+Another important consideration is that the model said the population would decline on its own without immigration/emigration. This means that, if the population is increasing via immigration, maybe the conservation officials should be focusing more on biosecurity rather than focusing on individuals already in the population. 
