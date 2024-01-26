@@ -4,58 +4,266 @@ output: html_document
 date: "2024-01-25"
 ---
 
-#### North Region
+#### q calculations from SW
+```{r}
+#qworst means using the lower estimates of population to increase catchability, high estimates of pop decrease catchability. Higher catchability means higher catch death rate
+SW21_L <-1032
+SW21_H <- 1665
+SW21_A <- 1230
+SW20C <- 98
+SW20E <- 277
+SW19C <- 74
+SW19E <- 267
+
+#get q's for each year based on diff pop sizes. Add on catches from future years to simulate actual pop size
+q20opt <- SW20C/(SW20E*(SW21_H + SW20C))
+q20worst <- SW20C/(SW20E*(SW21_L + SW20C))
+q20ave <- SW20C/(SW20E*(SW21_A + SW20C))
+q19opt <- SW19C/(SW19E*(SW21_H + SW20C + SW19C))
+q19worst <-SW19C/(SW19E*(SW21_L + SW20C + SW19C))
+q19ave <-SW19C/(SW19E*(SW21_A + SW20C + SW19C))
+
+qopt <- mean(c(q20opt,q19opt))
+qworst <- mean(c(q20worst, q19worst))
+qave <- mean(c(q20ave, q19ave))
+
+qopt
+qworst
+qave
+
+```
+
+
+#### Set up fxns
 
 ```{r}
 
-# Set Parameter values 
-r <- 0.025
-K <- 448
-N0 <- 140
-nyears <- 25
 
 # Define functions
-logistic <- function(r, K, nt) {
-  ntplus1 <- nt + r * nt * (1 -nt /K)
+logistic <- function(r, K, nt, e, q) {
+  ntplus1 <- nt + (r * nt * (1 -nt/K))-(e*q*nt)
   return(ntplus1)
 }
 
 # Create a loop to run the logistic model
 
+logistic_pop <- function(r, K, N0, e, q, nyears){
 nt <- rep(NA, nyears) 
 nt[1] <- N0
 
 for (i in 2:nyears) {
   nt[i] <- logistic(r = r,
                     K = K,
-                    nt = nt[i - 1])
+                    nt = nt[i - 1],
+                    e = e,
+                    q = q)
 }
+return(nt)
+}
+```
 
 
+#### North
+
+##### Nominal case
+```{r}
 # Run Scenario 1: North 
 # nominal case parameters
-r <- mean(0.025, 0.049)
+r <- mean(c(0.025,0.049))
 K <- 448
 N0 <- 140
+e <- 138
+q <- qave
+nyears <- 25
+
 
 output <- logistic_pop(r = r,
                        K = K,
                        N0 = N0,
+                       e = e,
+                       q = q,
                        nyears = nyears)
 
 # calculate % change
 100 * (output[ nyears ] - output[ 1 ]) / output[ 1 ]
+
+
+```
+
+##### Worst case
+```{r}
+#worst case
+r <- 0.025
+K <- 437
+N0 <- 280
+e <- 138
+q <- qworst
+nyears <- 25
+
+
+output2 <- logistic_pop(r = r,
+                       K = K,
+                       N0 = N0,
+                       e = e,
+                       q = q,
+                       nyears = nyears)
+
+# calculate % change
+100 * (output2[ nyears ] - output2[ 1 ]) / output2[ 1 ]
+```
+
+##### Best case
+```{r}
+r <- 0.049
+K <- 524
+N0 <- 46
+e <- 138
+q <- qopt
+nyears <- 25
+
+
+output3 <- logistic_pop(r = r,
+                       K = K,
+                       N0 = N0,
+                       e = e,
+                       q = q,
+                       nyears = nyears)
+
+# calculate % change
+100 * (output3[ nyears ] - output3[ 1 ]) / output3[ 1 ]
 ```
 
 #### Southwest Region
 
+##### Nominal case 
 ```{r}
+r <- mean(c(0.025,0.049))
+K <- 2191
+N0 <- 1230
+e <- 82
+q <- qave
+nyears <- 25
 
+
+output4 <- logistic_pop(r = r,
+                       K = K,
+                       N0 = N0,
+                       e = e,
+                       q = q,
+                       nyears = nyears)
+
+# calculate % change
+100 * (output4[ nyears ] - output4[ 1 ]) / output4[ 1 ]
+
+
+```
+
+##### Worst case
+```{r}
+r <- mean(c(0.025))
+K <- 2159
+N0 <- 1665
+e <- 82
+q <- qworst
+nyears <- 25
+
+
+output5 <- logistic_pop(r = r,
+                       K = K,
+                       N0 = N0,
+                       e = e,
+                       q = q,
+                       nyears = nyears)
+
+# calculate % change
+100 * (output5[ nyears ] - output5[ 1 ]) / output5[ 1 ]
+```
+
+##### Best case
+```{r}
+r <- mean(c(0.049))
+K <- 2389
+N0 <- 1032
+e <- 82
+q <- qopt
+nyears <- 25
+
+
+output6 <- logistic_pop(r = r,
+                       K = K,
+                       N0 = N0,
+                       e = e,
+                       q = q,
+                       nyears = nyears)
+
+# calculate % change
+100 * (output6[ nyears ] - output6[ 1 ]) / output6[ 1 ]
 ```
 
 #### Southeast Region
 
+##### Nominal case 
 ```{r}
+r <- mean(c(0.025,0.049))
+K <- 4438
+N0 <- 1822
+e <- 118
+q <- qave
+nyears <- 25
 
+
+output7 <- logistic_pop(r = r,
+                       K = K,
+                       N0 = N0,
+                       e = e,
+                       q = q,
+                       nyears = nyears)
+
+# calculate % change
+100 * (output7[ nyears ] - output7[ 1 ]) / output7[ 1 ]
+
+
+```
+
+##### Worst case
+```{r}
+r <- mean(c(0.025))
+K <- 4340
+N0 <- 2344
+e <- 82
+q <- qworst
+nyears <- 25
+
+
+output8 <- logistic_pop(r = r,
+                       K = K,
+                       N0 = N0,
+                       e = e,
+                       q = q,
+                       nyears = nyears)
+
+# calculate % change
+100 * (output8[ nyears ] - output8[ 1 ]) / output8[ 1 ]
+```
+
+##### Best case
+```{r}
+r <- mean(c(0.049))
+K <- 5045
+N0 <- 1399
+e <- 82
+q <- qopt
+nyears <- 25
+
+
+output9 <- logistic_pop(r = r,
+                       K = K,
+                       N0 = N0,
+                       e = e,
+                       q = q,
+                       nyears = nyears)
+
+# calculate % change
+100 * (output9[ nyears ] - output9[ 1 ]) / output9[ 1 ]
 ```
 
