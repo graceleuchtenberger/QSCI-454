@@ -37,8 +37,6 @@ qave
 #### Set up fxns
 
 ```{r}
-
-
 # Define functions
 logistic <- function(r, K, nt, e, q) {
   ntplus1 <- nt + (r * nt * (1 -nt/K))-(e*q*nt)
