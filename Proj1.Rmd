@@ -85,7 +85,6 @@ output <- logistic_pop(r = r,
 # calculate % change
 100 * (output[ nyears ] - output[ 1 ]) / output[ 1 ]
 
-
 ```
 
 ##### Worst case
@@ -204,7 +203,7 @@ output6 <- logistic_pop(r = r,
 ```{r}
 r <- mean(c(0.025,0.049))
 K <- 4438
-N0 <- 1822
+N0 <- 1811
 e <- 118
 q <- qave
 nyears <- 25
@@ -220,7 +219,6 @@ output7 <- logistic_pop(r = r,
 # calculate % change
 100 * (output7[ nyears ] - output7[ 1 ]) / output7[ 1 ]
 
-
 ```
 
 ##### Worst case
@@ -228,7 +226,7 @@ output7 <- logistic_pop(r = r,
 r <- mean(c(0.025))
 K <- 4340
 N0 <- 2344
-e <- 82
+e <- 118
 q <- qworst
 nyears <- 25
 
@@ -249,7 +247,7 @@ output8 <- logistic_pop(r = r,
 r <- mean(c(0.049))
 K <- 5045
 N0 <- 1399
-e <- 82
+e <- 118
 q <- qopt
 nyears <- 25
 
@@ -263,5 +261,31 @@ output9 <- logistic_pop(r = r,
 
 # calculate % change
 100 * (output9[ nyears ] - output9[ 1 ]) / output9[ 1 ]
+years <- c(1:25)
+```
+
+#### Big girl plotting
+```{r}
+library(ggplot2)
+df <- data.frame(years, output, output2, output3, output4, output5, output6, output7,output8, output9)
+
+colnames(df) <- c("Years", "N_nominal", "N_worst", "N_best", "SW_nominal", "SW_worst", "SW_best", "SE_nominal", "SE_worst", "SE_best")
+
+#All regions
+ggplot(df, aes(x=years))+
+  geom_line(aes(y=N_nominal), color="darkred")+
+  geom_line(aes(y=N_worst), color="red")+
+  geom_line(aes(y=N_best), color="pink")+
+  geom_line(aes(y=SW_nominal), color ="darkblue")+
+  geom_line(aes(y=SW_worst), color = "blue")+
+  geom_line(aes(y=SW_best), color = "purple")+
+  geom_line(aes(y=SE_nominal), color="darkgreen")+
+  geom_line(aes(y=SE_worst), color="green")+
+  geom_line(aes(y=SE_best), color="lightgreen")+
+  theme_classic()+
+  ylab("Population (N)")+
+  xlab("Years")+
+  theme(text = element_text(size = 20))
+
 ```
 
