@@ -67,7 +67,6 @@ N0 <- 139
 Nextinct <- 75
 tmax <- 100
 
-
 extinct_bears <- model.fun1000(N0, mu, sigma, tmax, Nextinct)
 extinction_prob <- sum(extinct_bears == 1)/1000
 extinction_prob
