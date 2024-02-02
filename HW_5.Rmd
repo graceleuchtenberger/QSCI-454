@@ -1,0 +1,73 @@
+---
+title: "HW_5"
+output: html_document
+date: "2024-02-02"
+---
+
+#### Function for running stochastic model once
+```{r}
+stochast <- function(N0, mu, sigma, tmax, Nextinct){
+  years <- 0:tmax
+  n.loops <- length(years)
+  Nt <- rep(x=NA, times = length(years))
+  rt <- rnorm(n = length(years), mean = mu, sd=sigma)
+  Nt[1] <- N0
+  for (i in 2:n.loops){
+    Nt[i] <- exp(rt[i-1])*Nt[i-1]
+    minpop<- min(Nt)
+    extinct <- ifelse(minpop<Nextinct, yes=1, no = 0)
+  }
+return(extinct)
+}
+
+```
+
+
+#### Function for running stochastic model 1000 times, recording extinction 
+```{r}
+
+model.fun1000 <- function(N0, mu, sigma, tmax, Nextinct){
+  output <- rep(x=NA, times = 1000)
+  n.loops <- length(0:tmax)
+  for (j in 1:1000){
+    Nt <- rep(x=NA, times = tmax)
+    Nt[1] <- N0
+    output[j] <- stochast(N0, mu, sigma, tmax, Nextinct)
+  }
+return(output)
+}
+
+mu <- 0.0003
+sigma <- 0.038
+N0 <- 73
+tmax <- 100
+Nextinct <- 40
+
+extinct_1 <- model.fun1000(N0, mu, sigma, tmax, Nextinct)
+extinction_prob <- sum(extinct_1 == 1)/1000
+extinction_prob
+```
+
+#### Yellowstone bears
+```{r}
+grizz <- readxl::read_excel("Grizzly.xlsx")
+
+routput <- rep(x=NA, times = length(grizz$Est_Total_Females)-1)
+length_griz <- length(grizz$Est_Total_Females)-1
+               
+for (i in 1:length_griz){
+  routput[i] <- log(grizz$Est_Total_Females[i+1]/grizz$Est_Total_Females[i])
+}
+routput
+
+mu <- mean(routput)
+sigma <- sd(routput)
+N0 <- 139
+Nextinct <- 75
+tmax <- 100
+
+extinct_bears <- model.fun1000(N0, mu, sigma, tmax, Nextinct)
+extinction_prob <- sum(extinct_bears == 1)/1000
+extinction_prob
+
+```
