@@ -31,7 +31,6 @@ model.fun1000 <- function(N0, mu, sigma, tmax, Nextinct){
   n.loops <- length(0:tmax)
   for (j in 1:1000){
     Nt <- rep(x=NA, times = tmax)
-    rt <- rnorm(n=length(0:tmax), mean=mu, sd = sigma)
     Nt[1] <- N0
     output[j] <- stochast(N0, mu, sigma, tmax, Nextinct)
   }
