@@ -28,7 +28,6 @@ return(extinct)
 
 model.fun1000 <- function(N0, mu, sigma, tmax, Nextinct){
   output <- rep(x=NA, times = 1000)
-  n.loops <- length(0:tmax)
   for (j in 1:1000){
     Nt <- rep(x=NA, times = tmax)
     Nt[1] <- N0

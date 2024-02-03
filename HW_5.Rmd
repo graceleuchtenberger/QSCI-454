@@ -4,7 +4,7 @@ output: html_document
 date: "2024-02-02"
 ---
 
-#### Function for running stochastic model once
+#### Function for running stochastic model once (lab function)
 ```{r}
 stochast <- function(N0, mu, sigma, tmax, Nextinct){
   years <- 0:tmax
@@ -23,12 +23,11 @@ return(extinct)
 ```
 
 
-#### Function for running stochastic model 1000 times, recording extinction 
+#### Function for running stochastic model 1000 times, recording extinction (lab function) 
 ```{r}
 
 model.fun1000 <- function(N0, mu, sigma, tmax, Nextinct){
   output <- rep(x=NA, times = 1000)
-  n.loops <- length(0:tmax)
   for (j in 1:1000){
     Nt <- rep(x=NA, times = tmax)
     Nt[1] <- N0
@@ -37,18 +36,13 @@ model.fun1000 <- function(N0, mu, sigma, tmax, Nextinct){
 return(output)
 }
 
-mu <- 0.0003
-sigma <- 0.038
-N0 <- 73
-tmax <- 100
-Nextinct <- 40
-
-extinct_1 <- model.fun1000(N0, mu, sigma, tmax, Nextinct)
-extinction_prob <- sum(extinct_1 == 1)/1000
-extinction_prob
 ```
 
-#### Yellowstone bears
+#### Uncertainty in rbar in new function for 1000x simulation
+
+
+1) The new extinction risk for females is 0.06-0.08 after adding uncertainty to rbar. 
+
 ```{r}
 grizz <- readxl::read_excel("Grizzly.xlsx")
 
@@ -60,14 +54,62 @@ for (i in 1:length_griz){
 }
 routput
 
-mu <- mean(routput)
-sigma <- sd(routput)
+rbar <- mean(routput)
+rsigma <- sd(routput)
+rse <- rsigma/sqrt(length_griz)
 N0 <- 139
 Nextinct <- 75
 tmax <- 100
 
-extinct_bears <- model.fun1000(N0, mu, sigma, tmax, Nextinct)
+#modified function
+model.fun1000.2.0 <- function(N0, rbar, rse, sigma, tmax, Nextinct){
+  output <- rep(x=NA, times = 1000)
+  for (j in 1:1000){
+    mu.sim <- rnorm(n=1, mean = rbar, sd = rse)
+    Nt <- rep(x=NA, times = tmax)
+    Nt[1] <- N0
+    output[j] <- stochast(N0, mu.sim, sigma, tmax, Nextinct)
+  }
+return(output)
+}
+
+extinct_bears <- model.fun1000.2.0(N0, rbar, rse, rsigma, tmax, Nextinct)
 extinction_prob <- sum(extinct_bears == 1)/1000
 extinction_prob
 
 ```
+
+#### Description, explanation, interpretation
+
+2) The extinction risk went up significantly compared to before, getting almost 6-8 times bigger with added uncertainty in population growth rate. While before we assumed the population rate was drawn from a normal distribution with a mean equal to the mean of all the growth rates from the original data set, this time we assumed that the mean of that distribution varied. So where population growth rate varied within a single, stationary distribution before, we are now shifting the distribution itself around every time we run the simulation. So essentially, the amount of possible population growth rates just got much larger, with greater potential for more negative population growth rates and more positive population growth rates. This increase in variability leads to, overall, more opportunities for extinction than we had before. We should now be more concerned about monitoring this grizzly population, as there was only a 1% chance of extinction in our simulations before, and now that chance is 6-8%. 
+
+#### Changing our data source 
+
+3) The rbar, standard deviation of rt, and standard error of rt for the observed females with cubs are 0.05, 0.37, and 0.07 respectively. The rbar, standard deviation of rt, and standard error of rt for estimated total females are 0.045, 0.12, and 0.023, respectively.
+
+4) The estimated extinction risk for the estimated total females is 0.06-0.08, and 0.51-0.57 for the observed females with cubs. 
+
+```{r}
+routput2 <- rep(x=NA, times = length(grizz$Observed_Females_cubs)-1)
+length_griz2 <- length(grizz$Observed_Females_cubs)-1
+               
+for (i in 1:length_griz2){
+  routput2[i] <- log(grizz$Observed_Females_cubs[i+1]/grizz$Observed_Females_cubs[i])
+}
+routput2
+
+rbar2 <- mean(routput2)
+rsigma2 <- sd(routput2)
+rse2 <- rsigma2/sqrt(length_griz2)
+N02 <- 51
+Nextinct2 <- 27
+tmax <- 100
+
+extinct_bears2 <- model.fun1000.2.0(N02, rbar2, rse2, rsigma2, tmax, Nextinct2)
+extinction_prob2<- sum(extinct_bears2 == 1)/1000
+extinction_prob2
+
+```
+
+5) The extinction risk for observed females with cubs was much higher than for estimated total females, clocking in at around 0.51-0.57 versus that for the total females, which was 0.06-0.08. The variability in population growth rate for observed females with cubs was magnified compared to that of the estimated total females, most likely due to the much smaller population size of the females with cubs, which also bumped up the extinction risk quite a bit, as smaller populations tend to be more likely to go extinct due to demographic stochasticity. The data of estimated total females was less susceptible to demographic stochasticity, just because the population was around 3-4 times bigger. This makes the population more resilient across simulations and less likely to go extinct. 
+  Using the model with observed females with cubs is probably a conservative estimate of extinction risk however, as likely not all females will have cubs in a given year. Estimated total females probably accounts for young females that may not be sexually mature yet, while observed females with cubs does not. Thus, just because there's an extinction risk for observed females with cubs doesn't mean all females will die, it just means that more likely than not there will be years where there are no females with cubs.  
