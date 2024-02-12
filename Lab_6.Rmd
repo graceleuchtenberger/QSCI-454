@@ -1,0 +1,36 @@
+---
+title: "Lab_6"
+output: html_document
+date: "2024-02-07"
+---
+
+---
+title: "Lab_6"
+output: html_document
+date: "2024-02-07"
+---
+
+N represents total number of salamanders in the trial. P represents probability of death at the level of toxicant in the experiment. X is the number of dead salamanders at the end of the trial. 
+```{r}
+x <- 10
+p <- 0.5
+N <- 20
+
+#get prob for single outcome
+dbinom(x=x,
+       prob = p,
+       size = N)
+
+#get prob for range of outcomes
+x <- 0:N
+
+prob <- dbinom(x=x,
+               prob = p,
+               size = N)
+probwithin <- prob[8:12]
+probwithin
+obs10 <- sum(probwithin)
+obs10
+
+
+```
