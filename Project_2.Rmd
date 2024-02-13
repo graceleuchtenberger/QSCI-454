@@ -28,11 +28,11 @@ N.output<-matrix(NA,nrow=length(years),ncol=2)
 
 N.output[1,1:2]<-c(nstarB_10,pstarB_10)
 
-for (i in 2:length(years)){
-  N<-N.output[i-1,1]
-  P<-N.output[i-1,2]
-  N.output[i,1]<-N+(a*N)-(b*N*P)
-  N.output[i,2]<-P+(c*b*N*P)-(d*P) 
+for (i in 1:length(years)){
+  N<-N.output[i,1]
+  P<-N.output[i,2]
+  N.output[i+1,1]<-N+(a*N)-(b*N*P)
+  N.output[i+1,2]<-P+(c*b*N*P)-(d*P) 
 }
 
 # Plot the model
@@ -48,6 +48,7 @@ J[2,1]<- b*c*pstarB_10
 J[2,2]<- 1+(b*c*nstarB_10)-d
 
 evals <- eigen(J)
+
 
 #Dom eigenvalue =  
 
