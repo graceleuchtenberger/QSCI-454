@@ -1,0 +1,137 @@
+---
+title: "Project_2"
+output: html_document
+date: "2024-02-12"
+---
+
+### Model Parameters
+```{r}
+a <- 0.2
+b <- 0.15
+c <- 0.3
+d <- 0.15
+K <- 20
+h <- 0.5
+years <- 1:100
+```
+
+### Base Model Plotting
+
+```{r}
+#Run the base model
+nstarB <- d/(b*c)
+pstarB <- a/b
+nstarB_10 <- nstarB*1.1
+pstarB_10 <- pstarB*1.1
+
+N.output<-matrix(NA,nrow=length(years),ncol=2)
+
+N.output[1,1:2]<-c(nstarB_10,pstarB_10)
+
+for (i in 2:length(years)){
+  N<-N.output[i-1,1]
+  P<-N.output[i-1,2]
+  N.output[i,1]<-N+(a*N)-(b*N*P)
+  N.output[i,2]<-P+(c*b*N*P)-(d*P) 
+}
+
+# Plot the model
+plot_model("base", N.output, a,b,c,d )
+
+#Jacobian matrix and eigenvalues
+
+J <- matrix (NA, nrow = 2, ncol = 2)
+
+J[1,1]<- 1+a-(b*pstarB_10)
+J[1,2]<- -b*nstarB_10
+J[2,1]<- b*c*pstarB_10
+J[2,2]<- 1+(b*c*nstarB_10)-d
+
+evals <- eigen(J)
+
+#Dom eigenvalue =  
+
+```
+### Prey Density dependence
+```{r}
+K <- 15
+
+#Run the density dependent model
+nstarDD <- d/(b*c)
+pstarDD <- (a/b)*(1-(d/(b*c*K)))
+nstarDD_10 <- nstarDD*1.1
+pstarDD_10 <- pstarDD*1.1
+
+N.outputDD<-matrix(NA,nrow=length(years),ncol=2)
+
+N.outputDD[1,1:2]<-c(nstarDD_10,pstarDD_10)
+
+for (i in 2:length(years)){
+  N<-N.outputDD[i-1,1]
+  P<-N.outputDD[i-1,2]
+  N.outputDD[i,1]<-N+(a*N)*(1-(N/K))-(b*N*P)
+  N.outputDD[i,2]<-P+(c*b*N*P)-(d*P) 
+}
+
+# Plot the model
+plot_model("density_dependent", N.outputDD, a,b,c,d,K )
+
+#Jacobian matrix and eigenvalues (For these do the N and P values need to be the 10% raised ones or the equil ones)
+#Something is wrong with the way I'm calculating these because I'm getting that it's oscillating away from equilibrium when it literally is not in the actual plot
+
+JDD <- matrix (NA, nrow = 2, ncol = 2)
+
+JDD[1,1]<- 1+a-2*(a/K)*nstarDD
+JDD[1,2]<- -b*nstarDD
+JDD[2,1]<- b*c*pstarDD
+JDD[2,2]<- 1+(b*c*nstarDD)-d
+
+evals_DD <- eigen(JDD)
+
+#Dom eigenvalue = 
+
+```
+### Predator handling time
+
+```{r}
+K2 <- 20
+K1 <- 10
+
+#Model for K = 20
+# I think the way they label the isoclines on the cheat sheet is incorrect
+nstarPH <- d/(b*(c-d*h))
+pstarPH <- (a/b)*((K2+K2*h*b*nstarPH-nstarPH-h*b*nstarPH^2)/K2)
+nstarPH_10 <- nstarPH*1.1
+pstarPH_10 <- pstarPH*1.1
+
+N.outputPH<-matrix(NA,nrow=length(years),ncol=2)
+
+N.outputPH[1,1:2]<-c(nstarPH_10,pstarPH_10)
+
+for (i in 2:length(years)){
+  N<-N.outputPH[i-1,1]
+  P<-N.outputPH[i-1,2]
+  N.outputPH[i,1]<-N+(a*N)*(1-(N/K))-(b*N*P)
+  N.outputPH[i,2]<-P+(c*b*N*P)-(d*P) 
+}
+
+# Plot the model
+plot_model("handling_time", N.outputPH, a,b,c,d,K,h )
+
+#Jacobian matrix and eigenvalues (For these do the N and P values need to be the 10% raised ones or the equil ones)
+#Something is wrong with the way I'm calculating these because I'm getting that it's oscillating away from equilibrium when it literally is not in the actual plot
+
+JPH <- matrix (NA, nrow = 2, ncol = 2)
+
+JPH[1,1]<- 1+a-2*(a/K)*nstarDD
+JPH[1,2]<- -b*nstarDD
+JPH[2,1]<- b*c*pstarDD
+JPH[2,2]<- 1+(b*c*nstarDD)-d
+
+evals_PH <- eigen(JPH)
+
+#Dom eigenvalue = 
+
+```
+```
+
