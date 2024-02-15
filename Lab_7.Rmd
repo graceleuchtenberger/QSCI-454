@@ -1,0 +1,97 @@
+---
+title: "Lab_7"
+output: html_document
+date: "2024-02-14"
+---
+### 1
+```{r}
+x <- c(47, 43, 27, 47, 96)
+t <- 15
+# Step 1: create an array of values of r to evaluate, using increments of 0.1
+rlist <- seq(2, 5.5, by = 0.1)
+# Step 2 calculate likelihood for each of these values of r and
+# store in an object called "likelihood".  
+# Step 2a: create empty matrix to hold negative log likelihood
+nll <- rep(NA, length(rlist))
+# Steb 2b
+# loop through all values of r, calculate the negative log
+# likelihood and save to array "nll"
+# Remember the function call:
+# dpois(x = x, lambda = rlist[i] * t, log = TRUE)
+for (i in 1:length(rlist)) {
+    nll[i] <- -sum(dpois(x = x,rlist[i] * t, log = T))}
+# Step 3: plot the results and see 
+# which value of r maximized the probabiltiy 
+# of seeing the outcome
+plot(rlist, nll, type = "l", lwd = 2)
+
+likelihood <- cbind.data.frame(rlist, nll)
+maxlike <- min(nll)
+confint <- min(nll)+1.92
+
+#
+
+```
+### 1b
+The values that give negative log likelihoods that are lower than confint (39.68) have r values between 3.1 and 3.9, with a maximum likelihood at an r of 3.5. 
+
+### 2a
+```{r}
+
+# write code to assign the estimated parameter (r) to the value of the input parameter "pars"
+r<-3
+t <- 15
+x <- c(47, 43, 27, 47, 96)
+# write code to create the calculate the negative log-likelihood of each observation in "thedata", based on the 
+# t and r
+r<-3
+t <- 15
+x <- c(47, 43, 27, 47, 96)
+nll.fun <- function(r, x, t) {
+  nll <- -sum(dpois(x = x,r * t, log = T))
+  return(nll)
+}
+
+poisson.soln <- optim(par=r, fn=nll.fun, x = x, t=t, method= "Brent", lower = 0, upper = 10)
+print(poisson.soln)
+
+```
+### 2b
+Our direct search method was a lot coarser than the optim function, which searched beyond the intervals that we input for the direct search. I would use the optim function because it's a little bit more efficient, reproducible, and precise than the direct search. 
+
+### 3
+```{r}
+pars <- c(3,6)
+nll.fun.nb <- function(pars, x, t) {
+  r <- pars[1]
+  k <- pars[2]
+  nll <- -sum(dnbinom(x = x,size=k, mu =r * t, log = T))
+  return(nll)
+}
+
+nb.soln <- optim(par=pars,
+                 fn = nll.fun.nb,
+                 x=x,
+                 t=t,
+                 method="Nelder-Mead")
+
+print(nb.soln$par)
+```
+
+### 4
+
+An intermediate value of K is more likely given our data because the probability distribution of dandelions with an intermediate value of K matches our data better. We don't have data for that many patches, but it spreads from 27 to 96, which is a larger range than higher values of K allow (K=20), but a smaller range than lower values of K allow for (K = 1). The intermediate range of dandelion values we have, and our limited amount of data thus creates a sort of intermediately squeezed probability distribution with a more defined range of values than a dataset with a wider range of values, but a less defined range of values than a dataset with a narrower range of values. 
+
+### 5
+```{r}
+# Create array of potential values for R
+# Create array of potential values for k
+# Create nested loop: loop through each value of R in teh list, and for each value of R loop through the list of K's and use the negative binomial function to calculate negative likelihood for each R and K combination
+# Output results into a matrix, columns are k values, rows are r values, likelihood values stored in the matrix 
+# For each R, we take the minimum nll value across all k values
+# Put those r values and their nll's into a matrix 
+# Find the smallest nll across all r values
+# Add 1.92 to the minimum nll of R and find the r values in the matrix whose nll's are less than that confidence interval value 
+```
+
+
