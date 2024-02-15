@@ -1,0 +1,62 @@
+---
+title: "HW_7"
+output: html_document
+date: "2024-02-15"
+---
+
+### Function Creation
+
+```{r}
+nll.fun.nb <- function(k,r, x, t) {
+  nll <- -sum(dnbinom(x = x,size=k, mu =r * t, log = T))
+  return(nll)
+}
+
+```
+
+### 1
+
+```{r}
+x <- c(47, 43, 27, 47, 95)
+t <- 15
+rlist <- seq(2,6,0.1)
+klist <- seq(3,10,0.1)
+nll <- matrix(data = NA, nrow=length(rlist), ncol=length(klist))
+for (i in 1:length(rlist)){
+  r <- rlist[i]
+  for (j in 1:length(klist)){
+    k <-klist[j]
+    nll[i,j] <- nll.fun.nb(k,r,x,t)
+  }
+}
+
+r.profile <- apply(X = nll, MARGIN = 1, FUN=min)
+plot(rlist, r.profile, type = "l", lwd = 2)
+min(r.profile)
+r.profile
+# min nll is element 16 in r.profile, so it's element 16 in rlist
+
+rlist[16]
+#value of r that maximizes likelihood is 3.5
+
+confintnb <- min(r.profile)+1.92
+r.profile
+
+# index values for confidence interval looking at r list are 4 and 35
+rlist[4]
+rlist[35]
+
+#confidence interval is between 2.3 and 5.4, much wider than last time
+```
+
+### 2
+
+The confidence interval was much smaller in the poisson distribution, ranging from 3.1 to 3.9. The confidence interval for the negative binomial was from 2.3 to 5.4, MUCH wider.
+
+### 3
+
+Allowing for patchiness in the negative binomial also allows for a wider range of potential values and more randomness in the overall population that might not be fully captured by the original data. Negative binomial functions are generally more conservative than poisson functions are in defining a tight range of probability values, allowing for greater variation. Greater variation generally leads to a wider interval that contains 95% of the (potential) data (95% confidence interval), hence why the negative binomial interval was wider than that of the poisson. 
+
+### 4
+
+I would say if you want to be conservative and avoid overdispersion as much as possible, I would use the negative binomial distribution to estimate densities. That way, you're way more likely to estimate a density that reflects the chaos of reality, which is generally what you're trying to do with a model (faithfully represent reality). However, if for some reason you don't need to capture a ton of uncertainty in the r parameter when you're modeling, maybe you're estimating densities in experimental plots or something, then the poisson will get you where you need to go. 
