@@ -12,10 +12,10 @@ c <- 0.3
 d <- 0.15
 K <- 20
 h <- 0.5
-years <- 1:100
+years <- 1:200
 ```
 
-### Base Model Plotting
+### Base Model
 
 ```{r}
 #Run the base model
@@ -47,13 +47,16 @@ J[1,2]<- -b*nstarB
 J[2,1]<- b*c*pstarB
 J[2,2]<- 1+(b*c*nstarB)-d
 
-evals <- eigen(J)
+evals <- eigen(J)$values
+mags <- sqrt(Re(evals)^2+Im(evals)^2)
+max.eigen <- max(mags)
 
-
-#Dom eigenvalue =  
+#Dom eigenvalue =  1.0149, complex part != 0, oscillating away from equilibrium
 
 ```
+
 ### Prey Density dependence
+
 ```{r}
 K <- 15
 
@@ -82,16 +85,19 @@ plot_model("density_dependent", N.outputDD, a,b,c,d,K )
 
 JDD <- matrix (NA, nrow = 2, ncol = 2)
 
-JDD[1,1]<- 1+a-2*(a/K)*nstarDD
+JDD[1,1]<- 1+a-2*(a/K)*nstarDD-b*pstarDD
 JDD[1,2]<- -b*nstarDD
 JDD[2,1]<- b*c*pstarDD
 JDD[2,2]<- 1+(b*c*nstarDD)-d
 
-evals_DD <- eigen(JDD)
+evals_DD <- eigen(JDD)$values
+magsDD <- sqrt(Re(evals_DD)^2+Im(evals_DD)^2)
+max.eigenDD <- max(magsDD)
 
-#Dom eigenvalue = 
+#Dom eigenvalue = 0.9894, complex part != 0, oscillating towards equilibrium
 
 ```
+
 ### Predator handling time
 
 ```{r}
@@ -112,26 +118,28 @@ N.outputPH[1,1:2]<-c(nstarPH_10,pstarPH_10)
 for (i in 2:length(years)){
   N<-N.outputPH[i-1,1]
   P<-N.outputPH[i-1,2]
-  N.outputPH[i,1]<-N+(a*N)*(1-(N/K))-(b*N*P)
+  N.outputPH[i,1]<-N+(a*N)*(1-(N/K2))-(b*N*P)
   N.outputPH[i,2]<-P+(c*b*N*P)-(d*P) 
 }
 
 # Plot the model
-plot_model("handling_time", N.outputPH, a,b,c,d,K,h )
+plot_model("handling_time", N.outputPH, a,b,c,d,K2,h )
 
 #Jacobian matrix and eigenvalues (For these do the N and P values need to be the 10% raised ones or the equil ones)
 #Something is wrong with the way I'm calculating these because I'm getting that it's oscillating away from equilibrium when it literally is not in the actual plot
 
 JPH <- matrix (NA, nrow = 2, ncol = 2)
 
-JPH[1,1]<- 1+a-2*(a/K)*nstarDD
-JPH[1,2]<- -b*nstarDD
-JPH[2,1]<- b*c*pstarDD
-JPH[2,2]<- 1+(b*c*nstarDD)-d
+JPH[1,1]<- 1+a-2*(a/K2)*nstarPH-(b*pstarPH)/((1+h*b*nstarPH)^2)
+JPH[1,2]<- (-b*nstarPH)/(1+h*b*nstarPH)
+JPH[2,1]<- (b*c*pstarPH)/((1+h*b*nstarPH)^2)
+JPH[2,2]<- 1+(b*c*nstarPH)/(1+h*b*nstarPH) - d
 
-evals_PH <- eigen(JPH)
+evals_PH <- eigen(JPH)$values
+magsPH <- sqrt(Re(evals_PH)^2+Im(evals_PH)^2)
+max.eigenPH <- max(magsPH)
 
-#Dom eigenvalue = 
+#Dom eigenvalue = should also be less than 1 
 
 ```
 ```
