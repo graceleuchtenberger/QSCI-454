@@ -62,7 +62,7 @@ K <- 15
 
 #Run the density dependent model
 nstarDD <- d/(b*c)
-pstarDD <- (a/b)*(1-(d/(b*c*K2)))
+pstarDD <- (a/b)*(1-(d/(b*c*K)))
 nstarDD_10 <- nstarDD*1.1
 pstarDD_10 <- pstarDD*1.1
 
@@ -73,12 +73,12 @@ N.outputDD[1,1:2]<-c(nstarDD_10,pstarDD_10)
 for (i in 2:length(years)){
   N<-N.outputDD[i-1,1]
   P<-N.outputDD[i-1,2]
-  N.outputDD[i,1]<-N+(a*N)*(1-(N/K2))-(b*N*P)
+  N.outputDD[i,1]<-N+(a*N)*(1-(N/K))-(b*N*P)
   N.outputDD[i,2]<-P+(c*b*N*P)-(d*P) 
 }
 
 # Plot the model
-plot_model("density_dependent", N.outputDD, a,b,c,d,K2 )
+plot_model("density_dependent", N.outputDD, a,b,c,d,K )
 
 #Jacobian matrix and eigenvalues (For these do the N and P values need to be the 10% raised ones or the equil ones)
 #Something is wrong with the way I'm calculating these because I'm getting that it's oscillating away from equilibrium when it literally is not in the actual plot
@@ -143,30 +143,6 @@ max.eigenPH <- max(magsPH)
 #Dom eigenvalue @ K = 20: 1.006
 
 ```
-```{r}
-K2 <- 20
-K1 <- 10
-h <- 1.1
-#Model for K = 20
-# I think the way they label the isoclines on the cheat sheet is incorrect
-nstarPH <- d/(b*(c-d*h))
-pstarPH <- (a/b)*((K1+K1*h*b*nstarPH-nstarPH-h*b*nstarPH^2)/K1)
-nstarPH_10 <- nstarPH*1.1
-pstarPH_10 <- pstarPH*1.1
 
-N.outputPH<-matrix(NA,nrow=length(years),ncol=2)
-
-N.outputPH[1,1:2]<-c(nstarPH_10,pstarPH_10)
-
-for (i in 2:length(years)){
-  N<-N.outputPH[i-1,1]
-  P<-N.outputPH[i-1,2]
-  N.outputPH[i,1]<-N+(a*N)*(1-(N/K1))-(b*N*P)/(1+b*h*N)
-  N.outputPH[i,2]<-P+(c*b*N*P)/(1+b*h*N)-(d*P) 
-}
-
-# Plot the model
-plot_model("handling_time", N.outputPH, a,b,c,d,K1,h )
-```
 
 
