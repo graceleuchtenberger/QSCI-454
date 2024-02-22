@@ -1,0 +1,103 @@
+---
+title: "Lab_8"
+output: html_document
+date: "2024-02-21"
+---
+
+```{r}
+x <- thedata$Killed 
+N <- thedata$InitialNumber
+h <- 0.01
+
+# make function optim can call
+a_nll <- function(a,x,N,h){
+  p <- a/(1+a*h*N)
+  nll <- -sum(dbinom(x, prob=p, size = N, log = T))
+  return(nll)
+}
+
+astart <- 0.3
+soln <- optim(par = astart,
+              fn = a_nll,
+              x = x,
+              N = N,
+              h=h ,
+              method = "Brent",
+              lower=0,
+              upper = 2)
+
+soln$par
+```
+
+```{r}
+h <- 0.02
+astart <- 0.3
+soln2 <- optim(par = astart,
+              fn = a_nll,
+              x = x,
+              N = N,
+              h=h ,
+              method = "Brent",
+              lower=0,
+              upper = 2)
+
+soln2$par
+```
+
+```{r}
+a.mle <- soln$par
+a.mle2 <- soln2$par
+initN <- seq(0,100, length.out=50)
+predict.h01 <- a.mle*initN/(1+a.mle*h*initN)
+predict.h02 <- a.mle2*initN/(1+a.mle2*h*initN)
+
+plot(N, x,
+     type="p",
+     xlab = "Initial Number",
+     ylab = "Number eaten")
+lines(initN, predict.h01, lwd = 2, col = "darkblue")
+lines(initN, predict.h02, lwd = 2, col = "darkred")
+legend("topleft", lwd = 2, col = c("darkblue","darkred"), legend = c("h=0.01","h= 0.02"))
+
+a.start <-0.3
+h <- 0.02
+
+```
+```{r}
+Nt <- thedata$NoHospitalizations
+t <- thedata$Day
+obs.di.nll <- function(pars, Nt, t){
+  r <- pars[1]
+  N0 <- pars[2]
+  ndays <- length(Nt)
+  nt <- rep(x=NA, times = ndays)
+  for (i in 1:ndays){
+    nt[i] <- N0*exp(r*t[i])
+  }
+  nll <- -sum(dpois(Nt, lambda = nt, log=T))
+  return(nll)
+}
+
+
+start.pars <- c(0.04, 2.8)
+t <- thedata$Day
+soln <- optim(par = start.pars,
+              fn = obs.di.nll,
+              Nt = Nt,
+              t=t,
+              method = "Nelder-Mead")
+
+soln$par
+
+N0.mle <- soln$par[2]
+r.mle <- soln$par[1]
+Nt.h <- N0.mle * exp(t*r.mle)
+plot(t, Nt,
+     type="p",
+     xlab = "Day",
+     ylab = "Daily number of hospitalizations")
+lines(t, Nt.h, lwd = 2, col = "darkblue")
+
+```
+
+
