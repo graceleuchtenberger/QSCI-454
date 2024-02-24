@@ -77,7 +77,7 @@ obs.di.nll <- function(pars, Nt, t){
   nll <- -sum(dpois(Nt, lambda = nt, log=T))
   return(nll)
 }
-
+#likelihood of observed data based on what the model spit out (based on some set of parameter values)
 
 start.pars <- c(0.04, 2.8)
 t <- thedata$Day

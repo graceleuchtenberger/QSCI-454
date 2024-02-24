@@ -1,0 +1,41 @@
+---
+title: "HW_8"
+output: html_document
+date: "2024-02-24"
+---
+```{r}
+load("~/Library/Mobile Documents/com~apple~CloudDocs/Documents/QSCI-454/flu.rda")
+obs.di.nll <- function(r, N0, Nt, t){
+  r <- r
+  N0 <- N0
+  ndays <- length(Nt)
+  nt <- rep(x=NA, times = ndays)
+  for (i in 1:ndays){
+    nt[i] <- N0*exp(r*t[i])
+  }
+  nll <- -sum(dpois(Nt, lambda = nt, log=T))
+  return(nll)
+}
+```
+
+
+
+```{r}
+Nt <- thedata$NoHospitalizations
+t <- thedata$Day
+
+N0list <- seq(1.5,5,0.035)
+rlist <- seq(0.01,0.07,0.0006)
+nll <- matrix(data = NA, nrow=length(rlist), ncol=length(N0list))
+for (i in 1:length(rlist)){
+  r <- rlist[i]
+  for (j in 1:length(N0list)){
+    N0 <-N0list[j]
+    nll[i,j] <- obs.di.nll(r,N0, Nt, t)
+  }
+}
+
+r.profile <- apply(X = nll, MARGIN = 1, FUN=min)
+N0.profile <- 
+```
+
