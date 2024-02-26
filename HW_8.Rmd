@@ -3,6 +3,9 @@ title: "HW_8"
 output: html_document
 date: "2024-02-24"
 ---
+
+### Function
+
 ```{r}
 load("~/Library/Mobile Documents/com~apple~CloudDocs/Documents/QSCI-454/flu.rda")
 obs.di.nll <- function(r, N0, Nt, t){
@@ -18,11 +21,11 @@ obs.di.nll <- function(r, N0, Nt, t){
 }
 ```
 
-
+### Confidence Intervals: the code
 
 ```{r}
 Nt <- thedata$NoHospitalizations
-t <- thedata$Day
+t.data <- thedata$Day
 
 N0list <- seq(1.5,5,0.035)
 rlist <- seq(0.01,0.07,0.0006)
@@ -31,11 +34,97 @@ for (i in 1:length(rlist)){
   r <- rlist[i]
   for (j in 1:length(N0list)){
     N0 <-N0list[j]
-    nll[i,j] <- obs.di.nll(r,N0, Nt, t)
+    nll[i,j] <- obs.di.nll(r,N0, Nt, t.data)
   }
 }
 
 r.profile <- apply(X = nll, MARGIN = 1, FUN=min)
-N0.profile <- 
+N0.profile <- apply(X = nll, MARGIN = 2, FUN=min)
+
+#finding MLE
+min(r.profile)
+min(N0.profile)
+
+#index values of MLE
+N0.mle <- N0.profile[41]
+r.mle<-r.profile[43]
+
+#MLE for r is 0.0352, MLE for 
+rlist[43]
+N0list[41]
+
+#they have same likelihood values, so we can just use that one value for conf interval creation
+target.n0.nll <- N0.mle +1.92
+target.r.nll <- r.mle +1.92
+
+#make df's so MLE's and their nll's can be found together
+r.profile2 <- data.frame(r = rlist, nll = r.profile)
+N0.profile2 <- data.frame(N0 = N0list, nll = N0.profile)
+
+#intervals
+r_in_ci <- subset(r.profile2, nll < target.r.nll)
+N0_in_ci <- subset(N0.profile2, nll < target.n0.nll)
+
+#r interval: 0.0172 to 0.0538
+# N0 interval: 1.990 to 4.125
+
 ```
 
+### Confidence Intervals: The numbers
+
+r interval: 0.0172 to 0.0538 N0 interval: 1.990 to 4.125
+
+### Worst case plotting
+
+```{r}
+N0.max <- max(N0_in_ci$N0)
+r.max <- max(r_in_ci$r)
+t <- 1:90
+Nt <- thedata$NoHospitalizations
+Nt.h.max <- N0.max * exp(t*r.max)
+
+plot(t.data, Nt,
+     type="p",
+     xlab = "Day",
+     ylab = "Daily number of hospitalizations",
+     xlim = c(0,90),
+     ylim = c(0,550))
+lines(t, Nt.h.max, lwd = 2, col = "darkblue")
+
+
+```
+
+### Best case scenario
+
+```{r}
+N0.min <- min(N0_in_ci$N0)
+r.min <- min(r_in_ci$r)
+t <- 1:90
+Nt <- thedata$NoHospitalizations
+Nt.h.min <- N0.min * exp(t*r.min)
+
+
+plot(t.data, Nt,
+     type="p",
+     xlab = "Day",
+     ylab = "Daily number of hospitalizations",
+     xlim = c(0,90),
+     ylim = c(0,10))
+lines(t, Nt.h.min, lwd = 2, col = "darkblue")
+
+
+```
+
+### Describe, explain, interpret
+
+We used a density independent model to describe the number of daily influenza hospitalizations in New York City. We fit an observation error model to our 30 days of flu hospitalization data, assuming that our observations are random variables, described by a poisson probability function.
+
+The model:
+
+$N(t) = N(0)e^{rt}$
+
+Where N(t) stands for the number of hospitalizations on day t, N(0) stands for the initial number of flu hospitalizations, and r stands for the growth rate. We used maximum likelihood to estimate r and N(0) based on the above model and our initial data. We then generated confidence intervals for these two terms to determine the best case scenario (low N0, low r) and the worst case scenario (high N0, high r).
+
+High initial hospitalizations with a high growth rate leads to an exponential increase of infections over 90 days in our worst case scenario, ending at 523 hospitalizations (a severe flu season). This makes sense, as if there's more starting cases, and it spreads faster (vaccination had the incorrect strain, lower proportion vaccinated), the potential for growth/spread will skyrocket. Low initial hospitalizations and a low growth rate minimize the infection's spread to only 9.4 cases after 90 days (a mild season). This also makes sense, as fewer intitial vectors of disease with limited growth potential (vaccination had the correct strain, high levels of vaccination) will moderate the disease's spread.
+
+Given that a severe flu season is 50 or more hospitalizations by day 90, and a mild season is 10 or fewer by day 90, and given the outcomes of our models, the NYC department of public health should bet on an extreme or close to extreme flu season. Considering that the best case scenario is still barely a mild season (almost intermediate), and the worst case scenario is \~10.5 times more cases than what qualifies as an extreme season, hospitals should buckle down and get ready to handle a large caseload. However, this is assuming a fairly simple model of flu growth that could be altered if prevention measures are adopted (e.g. masking, increased frequency of working from home, social distancing, etc.)
