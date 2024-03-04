@@ -1,0 +1,74 @@
+---
+title: "HW_9"
+output: html_document
+date: "2024-03-03"
+---
+
+### Observation error model function
+
+```{r}
+wolf <- load("~/Library/Mobile Documents/com~apple~CloudDocs/Documents/QSCI-454/wa_wolf.rda")
+
+process.ddo.nll <- function(pars, nt.obs){
+  r <- pars[1]
+  n_1 <- pars[2]
+  k <- pars[3]
+  nt <- rep(NA, length(nt.obs))
+  nt[1] <- n_1
+  n.loops <- length(nt.obs)
+  for (i in 2:n.loops){
+    nt[i]<- nt[i-1] +nt[i-1]*r*(1-nt[i-1]/k)
+  }
+  return(-sum(dpois(x=nt.obs, lambda=nt,log=TRUE)))
+}
+
+```
+
+### Parameter estimation
+
+```{r}
+nt.obs <- wa_wolf$Abundance
+start.pars.ddo <- c(0.25, 10, 130)
+process.ddo.fit <- optim(par = start.pars.ddo,
+                        fn = process.ddo.nll,
+                        nt = nt.obs,
+                        method = "BFGS")
+process.ddo.fit$par
+
+ddo_nll <- process.ddo.fit$value
+
+```
+
+### AIC table
+
+```{r}
+AIC_table <- data.frame(
+  Model = c("Observation", "Process"),
+  Num_est_param = c(3, 3),
+  NLL = c(ddo_nll, dd_nll)
+)
+
+AIC_table$AIC <- NA
+for (i in 1:2){
+  AIC_table$AIC[i] <- 2*(AIC_table$NLL[i] + AIC_table$Num_est_param[i])
+}
+
+AIC_table$deltAIC <- NA
+for (i in 1:2){
+  AIC_table$deltAIC[i] <- AIC_table$AIC[i] - min(AIC_table$AIC)
+}
+
+print(AIC_table)
+```
+
+### Describe, explain, interpret
+
+**Describe**: The estimated parameters for the density dependent process error model for r, N0, and K were 0.591, 3.17, and 132.802. The estimated parameters for the density dependent observation error model for r, N1, and K, were 0.54, 8.93, and 135.45. The process error model appears to slightly overestimate Nt when Nt-1 is around 50, while the observation error model appears to fit the data nearly perfectly, or at least have consistent over and underestimation of Nt depending on the year. The AIC table for the models is below. The observation error model has the lowest AIC. The change in AIC for the process model is only 4.409 though, taking the model mostly out of contention but not completely discounting it.
+
+```{r}
+print(AIC_table)
+```
+
+**Explain**: Again, the process error model appears to slightly overestimate Nt when Nt-1 is around 50, while the observation error model appears to fit the data nearly perfectly, or at least have consistent over and underestimation of Nt depending on the year. This would contribute to a lower AIC for the observation error model in comparison to the process error model. The observation error model has a better fit while estimating the same amount of parameters (same complexity) as the process error model, giving it a lower AIC overall. Otherwise, it looks like wolf populations
+
+**Interpret**: There is strong evidence that WA wolf populations grow in a density dependent manner, but there is evidence (slightly less strong, indicated by smaller delta AIC than when we looked at density dependent vs independent process error models) that there is some error in our wolf observations. This model seems to have a very tight fit to the data, so perhaps it is robust as a population model, despite the many assumptions we are making to get there (observations are randomly drawn from poisson distribution rather than negative binomial, we don't know the population growth rate we're just using the most likely estimate, etc). We also only have 11 years of data: the gold standard would be to collect even more data, train the model onto an initial set and then validate it with some extra test data. **Need to parse out what exactly observation error is (is it issues in how observation data is collected or are populations just stochastic).**

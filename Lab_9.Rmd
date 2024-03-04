@@ -15,7 +15,6 @@ process.di.nll <- function(pars, nt){
   r <- pars[1]
   n_0 <- pars[2]
   nt.hat <- rep(NA, length(nt))
-  nt.hat[1] <- n_0 + n_0*r
   n.loops <- length(nt)
   for (i in 2:n.loops){
     nt.hat[i]<- nt[i-1] +nt[i-1]*r
@@ -79,24 +78,7 @@ dd_nll <- process.dd.fit$value
 
 ## AIC estimation
 
-```{r}
-AIC_table <- data.frame(
-  Model = c("Density Independent", "Density Dependent"),
-  Num_est_param = c(2, 3),
-  NLL = c(di_nll, dd_nll)
-)
-
-AIC_table$AIC <- NA
-for (i in 1:2){
-  AIC_table$AIC[i] <- 2*(AIC_table$NLL[i] + AIC_table$Num_est_param[i])
-}
-
-AIC_table$deltAIC <- NA
-for (i in 1:2){
-  AIC_table$deltAIC[i] <- AIC_table$AIC[i] - min(AIC_table$AIC)
-}
-
-print(AIC_table)
+```{}
 ```
 
 ## Describe, explain, and interpret
@@ -107,6 +89,6 @@ print(AIC_table)
 print(AIC_table)
 ```
 
-**Explain**: The density dependent model fits much better, which makes sense because, as I noted before, the relationship between the observed Nt and Nt-1 just from initial visual inspection is similar to logistic growth, meaning that growth rate shrinks as the population gets larger. That curvilinear relationship is not well-represented by a density independent model, which assumes a static growth rate from year to year no matter the starting population size (Nt-1). So, the models indicate that as the wolf population gets bigger in WA, the growth of the population also tends to slow down. This would lead to the density dependent model having a delta AIC of zero (compared to the density independent process error model), given that its the best fitting process error model.
+**Explain**: The density dependent model fits much better, which makes sense because, as I noted before, the relationship between the observed Nt and Nt-1 just from initial visual inspection is similar to logistic growth, meaning that growth rate shrinks as the population gets larger. That curvilinear relationship is not well-represented by a density independent model, which assumes a static growth rate from year to year no matter the starting population size (Nt-1). So, the models indicate that as the wolf population gets bigger in WA, the growth of the population also tends to slow down. This would lead to the density dependent model having a delta AIC of zero (compared to the density independent process error model), given that its the best fitting process error model, even though it has one more parameter in it compared to the density independent model.
 
 **Interpret**: Washington state wolves DO show evidence of density dependent growth, given that the density dependent model blew the density independent model out of the water on the delta AIC scores (12.41 versus 0), and that, visually, the density independent model fits much much better than the density independent model. However, we are assuming that the population process has some randomness in this model; we don't know whether the model would perform better if we assumed that are observations had error in them but the population process was deterministic (observation error model, which we know from the textbook that the density dependent observation error model performed the best). It would be worth hypothesis testing on a few more density dependent models just to get to a model that's EVEN closer to representing the population (is there process error, observation error, even food availability, habitat availability, etc.)
