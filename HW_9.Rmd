@@ -39,6 +39,39 @@ ddo_nll <- process.ddo.fit$value
 
 ```
 
+### Process error model function
+```{r}
+
+process.dd.nll <- function(pars, nt){
+  r <- pars[1]
+  n_0 <- pars[2]
+  k <- pars[3]
+  nt.hat <- rep(NA, length(nt))
+  nt.hat[1] <- n_0 + n_0*r*(1 - (n_0/k))
+  n.loops <- length(nt)
+  for (i in 2:n.loops){
+    nt.hat[i]<- nt[i-1] +nt[i-1]*r*(1-nt[i-1]/k)
+  }
+  return(-sum(dpois(x=nt, lambda=nt.hat,log=TRUE)))
+}
+
+```
+
+### Estimate r and N0
+
+```{r}
+
+start.parsdd <- c(0.5, 3.3, 130)
+process.dd.fit <- optim(par = start.parsdd,
+                        fn = process.dd.nll,
+                        nt = nt.obs,
+                        method = "BFGS")
+
+end_parsdd <- process.dd.fit$par
+dd_nll <- process.dd.fit$value
+
+```
+
 ### AIC table
 
 ```{r}
