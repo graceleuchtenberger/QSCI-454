@@ -78,7 +78,7 @@ dd_nll <- process.dd.fit$value
 
 ## AIC estimation
 
-```{}
+```         
 ```
 
 ## Describe, explain, and interpret
