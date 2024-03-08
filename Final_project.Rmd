@@ -1,0 +1,249 @@
+---
+title: "Final_project"
+output: html_document
+date: "2024-03-07"
+---
+
+## Process error modeling
+
+### Density independent model function
+
+```{r}
+load("~/Library/Mobile Documents/com~apple~CloudDocs/Documents/QSCI-454/harborseals.rda")
+
+process.di.nll <- function(pars, nt){
+  r <- pars[1]
+  n_0 <- pars[2]
+  nt.hat <- rep(NA, length(nt))
+  n.loops <- length(nt)
+  nt.hat[1] <- n_0 + n_0*r
+  for (i in 2:n.loops){
+    nt.hat[i]<- nt[i-1] +nt[i-1]*r
+  }
+  return(-sum(dpois(x=nt, lambda=nt.hat,log=TRUE)))
+}
+
+```
+
+### Estimate r and N0
+
+```{r}
+
+nt.obs <- harborseals$abundance
+start.pars <- c(0.05,2000)
+process.di.fit <- optim(par = start.pars,
+                        fn = process.di.nll,
+                        nt = nt.obs,
+                        method = "BFGS")
+
+end_pars <- process.di.fit$par
+di_nll <- process.di.fit$value
+
+```
+
+### Density dependent model function
+
+```{r}
+
+process.dd.nll <- function(pars, nt){
+  r <- pars[1]
+  n_0 <- pars[2]
+  k <- pars[3]
+  nt.hat <- rep(NA, length(nt))
+  nt.hat[1] <- n_0 + n_0*r*(1 - (n_0/k))
+  n.loops <- length(nt)
+  for (i in 2:n.loops){
+    nt.hat[i]<- nt[i-1] +nt[i-1]*r*(1-nt[i-1]/k)
+  }
+  return(-sum(dpois(x=nt, lambda=nt.hat,log=TRUE)))
+}
+
+```
+
+### Estimate r, N0, K
+
+```{r}
+
+start.parsddp <- c(0.275, 3375, 8124)
+process.dd.fit <- optim(par = start.parsddp,
+                        fn = process.dd.nll,
+                        nt = nt.obs,
+                        method = "BFGS")
+
+end_parsddp <- process.dd.fit$par
+ddp_nll <- process.dd.fit$value
+
+```
+
+### Plot process error models (ask what Nt-1 is for the process error, think it's N0 but not sure)
+
+```{r}
+#functions to produce model values while also saving their respective nt-1's (I could've done this with the earlier function but didn't know if it would screw up optim)
+hdi.p <- function(pars, nt){
+  r <- pars[1]
+  n_0 <- pars[2]
+  nt.hat <- matrix(NA, nrow = length(nt), ncol=2)
+  n.loops <- length(nt)
+  nt.hat[1,1] <- n_0 + n_0*r
+  nt.hat[1,2] <- n_0
+  for (i in 2:n.loops){
+    nt.hat[i,2] <- nt[i-1]
+    nt.hat[i,1]<- nt[i-1] +nt[i-1]*r
+  }
+  return(nt.hat)
+}
+  
+hdd.p <- function(pars, nt){
+  r <- pars[1]
+  n_0 <- pars[2]
+  k <- pars[3]
+  nt.hat <- matrix(NA, nrow = length(nt), ncol=2)
+  nt.hat[1,1] <- n_0 + n_0*r*(1 - (n_0/k))
+  nt.hat[1,2] <- n_0
+  n.loops <- length(nt)
+  for (i in 2:n.loops){
+    nt.hat[i,2] <- nt[i-1]
+    nt.hat[i]<- nt[i-1] +nt[i-1]*r*(1-nt[i-1]/k)
+  }
+  return(nt.hat)
+}
+
+#create list of nt-1 to pair with nt for graphing purposes
+nt.1 <- rep(NA, length(nt.obs))
+nt.observed <- data.frame(nt.obs, nt.1)
+for (i in 2:length(nt.observed$nt.obs)){
+  nt.observed[i, 2] <- nt.observed[i-1,1]
+}
+
+#create nt and nt-1 matrices for graphing for each model
+hdi.p1 <- hdi.p(end_pars,nt.obs)
+hdd.p1 <- hdd.p(end_parsdd, nt.obs)
+ 
+# plot models and data  
+plot(nt.observed$nt.1, nt.observed$nt.obs,
+     type="p",
+     xlab = "Nt-1",
+     ylab = "Nt")
+lines(hdi.p1[,2], hdi.p1[,1] , lwd = 2, col = "darkblue")
+lines(hdd.p1[,2], hdd.p1[,1], lwd = 2, col = "darkred")
+legend("topleft", lwd = 2, col = c("darkblue","darkred"), legend = c("Density Ind.","Density dep."))
+
+```
+## Observation error modeling
+
+### Density independent model function
+
+```{r}
+obs.di.nll <- function(pars, nt.obs){
+  r <- pars[1]
+  n_1 <- pars[2]
+  nt <- rep(NA, length(nt.obs))
+  nt[1] <- n_1
+  n.loops <- length(nt.obs)
+  for (i in 2:n.loops){
+    nt[i]<- nt[i-1] +nt[i-1]*r
+  }
+  return(-sum(dpois(x=nt.obs, lambda=nt,log=TRUE)))
+}
+
+```
+
+### Estimate r and N1
+
+```{r}
+start.parsdio <- c(0.04, 4560)
+obs.di.fit <- optim(par = start.parsdio,
+                        fn = obs.di.nll,
+                        nt = nt.obs,
+                        method = "Nelder-Mead")
+
+end_parsdio <- obs.di.fit$par
+dio_nll <- obs.di.fit$value
+
+```
+
+### Density dependent model function
+
+```{r}
+obs.dd.nll <- function(pars, nt.obs){
+  r <- pars[1]
+  n_1 <- pars[2]
+  K <- pars[3]
+  nt <- rep(NA, length(nt.obs))
+  nt[1] <- n_1
+  n.loops <- length(nt.obs)
+  for (i in 2:n.loops){
+    nt[i]<- nt[i-1] +nt[i-1]*r*(1-nt[i-1]/K)
+  }
+  return(-sum(dpois(x=nt.obs, lambda=nt,log=TRUE)))
+}
+
+```
+
+### Estimating r, N1, K
+
+```{r}
+start.parsddo <- c(0.18, 3848, 9377)
+obs.dd.fit <- optim(par = start.parsddo,
+                        fn = obs.dd.nll,
+                        nt = nt.obs,
+                        method = "Nelder-Mead")
+
+end_parsddo <- obs.dd.fit$par
+ddo_nll <- obs.dd.fit$value
+
+```
+### Plot observation error model
+
+```{r}
+#functions to produce model values while also saving their respective nt-1's (I could've done this with the earlier function but didn't know if it would screw up optim)
+hdi.o <- function(pars, nt){
+  r <- pars[1]
+  n_1 <- pars[2]
+  nt.hat <- matrix(NA, nrow = length(nt), ncol=2)
+  n.loops <- length(nt)
+  nt.hat[1,1] <- n_0 + n_0*r
+  nt.hat[1,2] <- n_0
+  for (i in 2:n.loops){
+    nt.hat[i,2] <- nt[i-1]
+    nt.hat[i,1]<- nt[i-1] +nt[i-1]*r
+  }
+  return(nt.hat)
+}
+  
+hdd.o <- function(pars, nt){
+  r <- pars[1]
+  n_1 <- pars[2]
+  k <- pars[3]
+  nt.hat <- matrix(NA, nrow = length(nt), ncol=2)
+  nt.hat[1,1] <- n_0 + n_0*r*(1 - (n_0/k))
+  nt.hat[1,2] <- n_0
+  n.loops <- length(nt)
+  for (i in 2:n.loops){
+    nt.hat[i,2] <- nt[i-1]
+    nt.hat[i]<- nt[i-1] +nt[i-1]*r*(1-nt[i-1]/k)
+  }
+  return(nt.hat)
+}
+
+#create list of nt-1 to pair with nt for graphing purposes
+nt.1 <- rep(NA, length(nt.obs))
+nt.observed <- data.frame(nt.obs, nt.1)
+for (i in 2:length(nt.observed$nt.obs)){
+  nt.observed[i, 2] <- nt.observed[i-1,1]
+}
+
+#create nt and nt-1 matrices for graphing for each model
+hdi.p1 <- hdi.p(end_pars,nt.obs)
+hdd.p1 <- hdd.p(end_parsdd, nt.obs)
+ 
+# plot models and data  
+plot(nt.observed$nt.1, nt.observed$nt.obs,
+     type="p",
+     xlab = "Nt-1",
+     ylab = "Nt")
+lines(hdi.p1[,2], hdi.p1[,1] , lwd = 2, col = "darkblue")
+lines(hdd.p1[,2], hdd.p1[,1], lwd = 2, col = "darkred")
+legend("topleft", lwd = 2, col = c("darkblue","darkred"), legend = c("Density Ind.","Density dep."))
+
+```
