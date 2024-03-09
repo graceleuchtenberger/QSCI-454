@@ -196,54 +196,64 @@ ddo_nll <- obs.dd.fit$value
 ### Plot observation error model
 
 ```{r}
-#functions to produce model values while also saving their respective nt-1's (I could've done this with the earlier function but didn't know if it would screw up optim)
-hdi.o <- function(pars, nt){
-  r <- pars[1]
-  n_1 <- pars[2]
-  nt.hat <- matrix(NA, nrow = length(nt), ncol=2)
-  n.loops <- length(nt)
-  nt.hat[1,1] <- n_0 + n_0*r
-  nt.hat[1,2] <- n_0
-  for (i in 2:n.loops){
-    nt.hat[i,2] <- nt[i-1]
-    nt.hat[i,1]<- nt[i-1] +nt[i-1]*r
-  }
-  return(nt.hat)
+t <- 1:length(nt.obs)
+
+HDIO <- rep(NA, length(nt.obs))
+rdio.mle <- end_parsdio[1]
+HDIO[1] <- end_parsdio[2]
+for (i in 2:length(nt.obs)){
+  HDIO[i]<- HDIO[i-1] +HDIO[i-1]*rdio.mle
 }
   
-hdd.o <- function(pars, nt){
-  r <- pars[1]
-  n_1 <- pars[2]
-  k <- pars[3]
-  nt.hat <- matrix(NA, nrow = length(nt), ncol=2)
-  nt.hat[1,1] <- n_0 + n_0*r*(1 - (n_0/k))
-  nt.hat[1,2] <- n_0
-  n.loops <- length(nt)
-  for (i in 2:n.loops){
-    nt.hat[i,2] <- nt[i-1]
-    nt.hat[i]<- nt[i-1] +nt[i-1]*r*(1-nt[i-1]/k)
-  }
-  return(nt.hat)
+HDDO <- rep(NA, length(nt.obs))
+rddo.mle <- end_parsddo[1]
+HDDO[1] <- end_parsddo[2]
+kddo.mle <- end_parsddo[3]
+for (i in 2:length(nt.obs)){
+  HDDO[i]<- HDDO[i-1] +HDDO[i-1]*rddo.mle*(1-HDDO[i-1]/kddo.mle)
 }
+  
 
-#create list of nt-1 to pair with nt for graphing purposes
-nt.1 <- rep(NA, length(nt.obs))
-nt.observed <- data.frame(nt.obs, nt.1)
-for (i in 2:length(nt.observed$nt.obs)){
-  nt.observed[i, 2] <- nt.observed[i-1,1]
-}
-
-#create nt and nt-1 matrices for graphing for each model
-hdi.p1 <- hdi.p(end_pars,nt.obs)
-hdd.p1 <- hdd.p(end_parsdd, nt.obs)
- 
 # plot models and data  
-plot(nt.observed$nt.1, nt.observed$nt.obs,
+plot(t,nt.obs ,
      type="p",
-     xlab = "Nt-1",
+     xlab = "Time",
      ylab = "Nt")
-lines(hdi.p1[,2], hdi.p1[,1] , lwd = 2, col = "darkblue")
-lines(hdd.p1[,2], hdd.p1[,1], lwd = 2, col = "darkred")
+lines(t, HDIO, lwd = 2, col = "darkblue")
+lines(t, HDDO, lwd = 2, col = "darkred")
 legend("topleft", lwd = 2, col = c("darkblue","darkred"), legend = c("Density Ind.","Density dep."))
 
 ```
+
+## AIC table
+
+```{r}
+AIC_table <- data.frame(
+  Model = c("Process DI", "Process DD", "Obs DI", "Obs DD"),
+  Num_est_param = c(2, 3, 2, 3),
+  NLL = c(di_nll, ddp_nll, dio_nll, ddo_nll)
+)
+
+AIC_table$AIC <- NA
+for (i in 1:4){
+  AIC_table$AIC[i] <- 2*(AIC_table$NLL[i] + AIC_table$Num_est_param[i])
+}
+
+AIC_table$deltAIC <- NA
+for (i in 1:4){
+  AIC_table$deltAIC[i] <- AIC_table$AIC[i] - min(AIC_table$AIC)
+}
+
+print(AIC_table)
+```
+
+## Confidence intervals for r, likelihood profile with K
+```{r}
+
+
+
+```
+
+
+
+

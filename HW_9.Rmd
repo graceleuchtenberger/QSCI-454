@@ -9,7 +9,7 @@ date: "2024-03-03"
 ```{r}
 wolf <- load("~/Library/Mobile Documents/com~apple~CloudDocs/Documents/QSCI-454/wa_wolf.rda")
 
-process.ddo.nll <- function(pars, nt.obs){
+obs.dd.nll <- function(pars, nt.obs){
   r <- pars[1]
   n_1 <- pars[2]
   k <- pars[3]
@@ -42,7 +42,7 @@ ddo_nll <- process.ddo.fit$value
 ### Process error model function
 ```{r}
 
-process.dd.nll <- function(pars, nt){
+obs.di.nll <- function(pars, nt){
   r <- pars[1]
   n_0 <- pars[2]
   k <- pars[3]
