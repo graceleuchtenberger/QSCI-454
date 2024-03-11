@@ -250,6 +250,35 @@ print(AIC_table)
 ## Confidence intervals for r, likelihood profile with K
 ```{r}
 
+rlist <- seq(.025,.525,0.005)
+klist <- seq(7624,8624,10)
+nll <- matrix(data = NA, nrow=length(rlist), ncol=length(klist))
+for (i in 1:length(rlist)){
+  r <- rlist[i]
+  for (j in 1:length(klist)){
+    k <-klist[j]
+    pars <- c(r, 3375.001, k)
+    nll[i,j] <- process.dd.nll(pars, nt.obs)
+  }
+}
+
+r.profile <- apply(X = nll, MARGIN = 1, FUN=min)
+plot(rlist, r.profile, type = "l", lwd = 2)
+min(r.profile)
+r.profile
+# min nll is element 16 in r.profile, so it's element 16 in rlist
+
+rlist[51]
+#value of r that maximizes likelihood is 3.5
+
+confintnb <- min(r.profile)+1.92
+r.profile
+
+# index values for confidence interval looking at r list are 47 and 55
+rlist[47]
+rlist[55]
+
+# conf int r list values are between 0.255 and 0.295
 
 
 ```
