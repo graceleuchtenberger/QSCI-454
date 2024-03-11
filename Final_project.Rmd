@@ -269,6 +269,7 @@ r.profile
 # min nll is element 16 in r.profile, so it's element 16 in rlist
 
 rlist[51]
+
 #value of r that maximizes likelihood is 3.5
 
 confintnb <- min(r.profile)+1.92
@@ -279,7 +280,7 @@ rlist[47]
 rlist[55]
 
 # conf int r list values are between 0.255 and 0.295
-
+# r values less than 1 don't support complex pop dynamics in density dependent model
 
 ```
 
