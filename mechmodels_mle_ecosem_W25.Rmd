@@ -1,0 +1,93 @@
+---
+title: "mechmodels_mle_ecosem_W25"
+output: html_document
+date: "2025-02-12"
+---
+
+
+
+```{r}
+library(DHARMa)
+library(glmmTMB)
+```
+
+(The following is adapted from Tim Essington's class, Introduction to Quantitative Ecology. His book of the same name is a fantastic resource for beginning modelers.)
+
+Every year around this time local and national organizations begin to track the spread of influenza.  Suppose that you are an employee of the Department of Public Health for New York City and you are monitoring local hospitalizations for influenza cases. Every year, the flu vaccine involves a high degree of guesswork for which strains will be dominant this year. If the CDC guesses well, then flu season is relatively mild, but if they guess poorly then the flu season can be much worse.
+
+You have received counts of the number of daily influenza hospitalizations. Load and run the data below to get a look at it.
+
+## Load the data
+```{r}
+load(file='flu.rda')
+```
+
+## Plot the data
+```{r}
+days <- thedata$Day
+Ntobs <- thedata$NoHospitalizations
+
+plot(days, Ntobs)
+```
+Notice that there's a lot of variability here. We'll come back to that later. 
+
+## Correlative model
+
+If you had no knowledge of how disease spread works, and we just wanted to use a purely statistical model, we can pretty easily do that. Run the code below. 
+```{r}
+# Run a linear model
+lm <- lm(Ntobs ~ days, data = thedata)
+summary(lm)
+
+# Simulate residuals
+tst_simres <- simulateResiduals(lm) #DHARMa
+plot(tst_simres)
+
+```
+This model actually doesn't have the worst fit, it only starts to set off alarm bells when you're looking at that simulated residuals plot on the right. 
+
+We know as biologists though (and people who have lived through a pandemic) that hospitalizations don't necessarily increase linearly. Your data is highly noisy, but you know that real cases are growing exponentially in a highly predictable manner.  In fact, you think the cases change according the following model:
+
+$$
+\frac{dN(t)}{dt} = rN(t)
+$$
+where r is the rate of growth and N(0) is the initial number of influenza cases, and t is day.  The solution to this expression can be written as:
+
+$$
+N(t) = N(0)e^{rt}
+$$
+By setting t = 1, 2, 3, .... 30, you can calculate the predicted number of flu cases for each day. 
+
+So, you would like to use your data to estimate the daily growth rate r of flu cases. Given that your data is noisy, it would be wise to incorporate an element of uncertainty when you're fitting your model to your data that also fits the structure of your data, much like you would in fitting a generalized linear model. Given the structure of the data (discrete counts of events over a continuous window) you will treat your observations as random variables, described by a Poisson probability function:
+
+$$
+Y_i \sim Poisson(\lambda = N(t))
+$$
+where lambda refers to the mean of the Poisson probability function.
+
+
+```{r}
+flu.nll <- function(pars, Ntobs, t) {
+N0 <- pars[1]
+r <- pars[2]
+ndays <- length(Ntobs)
+Nt <- rep(NA, times = ndays)
+Nt[1] <- N0
+for (i in 1:ndays) Nt[i] <- N0 * exp(r*t[i])
+nll <--sum(dpois(Ntobs, lambda = Nt, log = TRUE))
+return(nll)
+}
+start.pars <- c(2, 0.01)
+soln <- optim(par = start.pars, fn = flu.nll, Ntobs = Ntobs,
+t = t, method = "Nelder-Mead")
+print(soln$par)
+
+```
+
+
+```{r}
+predict <- soln$par[1]*exp(soln$par[2]*t)
+plot(t, Ntobs, type = "p", xlab = "Days", ylab = "Daily Number of Hospitalizations", las = lines(t, predict, lwd = 2, col = "Red")
+```
+
+
