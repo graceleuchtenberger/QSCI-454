@@ -73,7 +73,7 @@ We can estimate the daily growth rate r by working sort of in reverse: given an 
 Optim just looks to maximize/minimize the output of a function that we put in, so we need to make a function first.  
 
 ```{r}
-## inputs are "pars", which are starting parameters (values for N0 and r) and following parameters that optim will put in; "Ntobs", which is our data, and "t" or_____________________________
+## inputs are "pars", which are starting parameters (values for N0 and r) and following parameters that optim will put in; "Ntobs", which is our data, and "t" or days since N0
 
 flu.nll <- function(pars, Ntobs, t) {
   # pars is a vector that contains our N0 and r values; we're calling both and putting them into variables
@@ -99,7 +99,7 @@ return(nll)
 ## 2 is our starting N0 for the data, and 0.01 is our starting r. This seems reasonable given what the data looks like.
 start.pars <- c(2, 0.01)
 ## Run optim with our starting parameters, our negative log likelihood function, and our data to get parameters
-  ### You can use different methods for optim, I just used this one. _________________________
+  ### You can use different methods for optim, I just used this one. 
 soln <- optim(par = start.pars, fn = flu.nll, Ntobs = Ntobs,
 t = days, method = "Nelder-Mead")
 print(soln$par)
