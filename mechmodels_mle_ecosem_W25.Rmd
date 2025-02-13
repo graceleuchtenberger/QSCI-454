@@ -44,7 +44,9 @@ tst_simres <- simulateResiduals(lm) #DHARMa
 plot(tst_simres)
 
 ```
-This model actually doesn't have the worst fit, it only starts to set off alarm bells when you're looking at that simulated residuals plot on the right. 
+This model actually kind of works. But...
+
+## Fitting a mechanistic model to our data using maximum likelihood estimation
 
 We know as biologists though (and people who have lived through a pandemic) that hospitalizations don't necessarily increase linearly. Your data is highly noisy, but you know that real cases are growing exponentially in a highly predictable manner.  In fact, you think the cases change according the following model:
 
@@ -58,7 +60,7 @@ N(t) = N(0)e^{rt}
 $$
 By setting t = 1, 2, 3, .... 30, you can calculate the predicted number of flu cases for each day. 
 
-So, you would like to use your data to estimate the daily growth rate r of flu cases. Given that your data is noisy, it would be wise to incorporate an element of uncertainty when you're fitting your model to your data that also fits the structure of your data, much like you would in fitting a generalized linear model. Given the structure of the data (discrete counts of events over a continuous window) you will treat your observations as random variables, described by a Poisson probability function:
+So, you would like to use your data to estimate the daily growth rate r (and hte N0) of flu cases. Given that your data is noisy, it would be wise to incorporate an element of uncertainty when you're fitting your model to your data that also fits the structure of your data, much like you would in fitting a generalized linear model. Given the structure of the data (discrete counts of events over a continuous window) you will treat your observations as random variables, described by a Poisson probability function:
 
 $$
 Y_i \sim Poisson(\lambda = N(t))
@@ -66,28 +68,52 @@ $$
 where lambda refers to the mean of the Poisson probability function.
 
 
+We can estimate the daily growth rate r by working sort of in reverse: given an r value, assuming it's the "true" one, how likely is the data that we have. Through this framework, we use a function optim that uses a numerical algorithm to search an r value that maximizes the likelihood of the data. 
+
+Optim just looks to maximize/minimize the output of a function that we put in, so we need to make a function first.  
+
 ```{r}
+## inputs are "pars", which are starting parameters (values for N0 and r) and following parameters that optim will put in; "Ntobs", which is our data, and "t" or_____________________________
+
 flu.nll <- function(pars, Ntobs, t) {
+  # pars is a vector that contains our N0 and r values; we're calling both and putting them into variables
 N0 <- pars[1]
 r <- pars[2]
+# getting the number of days in our dataset
 ndays <- length(Ntobs)
+# creating a list of Nt values for our function output ahead of time as it makes the algorithm go faster
 Nt <- rep(NA, times = ndays)
+# experimenting with initial case number and putting htat in our NT list
 Nt[1] <- N0
+# running a loop to get Nt values with our parameters
 for (i in 1:ndays) Nt[i] <- N0 * exp(r*t[i])
-nll <--sum(dpois(Ntobs, lambda = Nt, log = TRUE))
+# calculate negative log likelihood of of this data we generated (Nt) given our data (Ntobs)
+nll <- -sum(dpois(Ntobs, lambda = Nt, log = TRUE))
 return(nll)
 }
-start.pars <- c(2, 0.01)
-soln <- optim(par = start.pars, fn = flu.nll, Ntobs = Ntobs,
-t = t, method = "Nelder-Mead")
-print(soln$par)
 
 ```
 
-
+### Getting our parameters
 ```{r}
-predict <- soln$par[1]*exp(soln$par[2]*t)
-plot(t, Ntobs, type = "p", xlab = "Days", ylab = "Daily Number of Hospitalizations", las = lines(t, predict, lwd = 2, col = "Red")
+## 2 is our starting N0 for the data, and 0.01 is our starting r. This seems reasonable given what the data looks like.
+start.pars <- c(2, 0.01)
+## Run optim with our starting parameters, our negative log likelihood function, and our data to get parameters
+  ### You can use different methods for optim, I just used this one. _________________________
+soln <- optim(par = start.pars, fn = flu.nll, Ntobs = Ntobs,
+t = days, method = "Nelder-Mead")
+print(soln$par)
 ```
+
+
+### How does our model look against the data?
+```{r}
+predict <- soln$par[1]*exp(soln$par[2]*days)
+plot(days, Ntobs, type = "p", xlab = "Days", ylab = "Daily Number of Hospitalizations", las = 1) +
+  lines(days, predict, lwd = 2, col = "Red")
+```
+
+Looks like a pretty good fit! We now have used maximum likelihood estimation to statistically fit mechanistic model parameters to our data. 
+
 
 
