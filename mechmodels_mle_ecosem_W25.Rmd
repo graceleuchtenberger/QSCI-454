@@ -115,5 +115,17 @@ plot(days, Ntobs, type = "p", xlab = "Days", ylab = "Daily Number of Hospitaliza
 
 Looks like a pretty good fit! We now have used maximum likelihood estimation to statistically fit mechanistic model parameters to our data. 
 
+Here are some resources for future learning, if you're jazzed about mechanistic models
+
+Tim Essington book chapter on why "fit models to data?” (short but very helpful for setting the stage / context): https://academic.oup.com/book/39144/chapter/338593374
+
+Tim Essington book chapter on Likelihood (long but the clearest treatment of this topic I have ever seen): https://academic.oup.com/book/39144/chapter/338593540
+
+Website from Berry's workshop  on fitting models to data: https://models4data2theory.github.io/courses/wkshp_interactions/ 
+This one is potentially helpful to compare with the Essington materials; it is nice in terms of actually going all the way through how you would do the parameter estimation with maximum likelihood for a relatively simple example.
+
+Ben Bolker’s ecological models and data in R book (complete book available at that link for free)—tons of great content.
+
+Maino et al.: https://www.sciencedirect.com/science/article/abs/pii/S2214574516300931
 
 
